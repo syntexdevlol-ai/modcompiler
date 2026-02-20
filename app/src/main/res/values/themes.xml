@@ -1,3 +1,4 @@
 <resources>
-    <style name="Theme.ModCompiler" parent="Theme.Material3.DayNight.NoActionBar" />
+    <!-- Use AppCompat Light NoActionBar to avoid missing M3 theme on older setup. -->
+    <style name="Theme.ModCompiler" parent="Theme.AppCompat.Light.NoActionBar" />
 </resources>
