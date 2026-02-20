@@ -104,9 +104,14 @@ private fun runBuild(dir: File): String {
         ?: return "gradlew not found in extracted folder. Contents: " +
             dir.list()?.joinToString(", ").orEmpty()
 
-    gradlew.setExecutable(true)
+    // Best effort to make the wrapper executable; ignore failures.
+    try {
+        gradlew.setExecutable(true)
+    } catch (_: SecurityException) { }
+
+    // Fallback to sh ./gradlew if exec bit fails.
     val workDir = gradlew.parentFile ?: dir
-    val cmd = "cd \"${workDir.absolutePath}\" && ./gradlew build"
+    val cmd = "cd \"${workDir.absolutePath}\" && sh ./gradlew build"
 
     val pb = ProcessBuilder("/system/bin/sh", "-c", cmd)
         .redirectErrorStream(true)
