@@ -1,4 +1,4 @@
 <resources>
-    <!-- Depend on Material Components theme (available via material dependency). -->
-    <style name="Theme.ModCompiler" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+    <!-- Use plain Theme.MaterialComponents.Light to avoid missing DayNight variants on some setups. -->
+    <style name="Theme.ModCompiler" parent="Theme.MaterialComponents.Light.NoActionBar" />
 </resources>
