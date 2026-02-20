@@ -97,12 +97,21 @@ private fun unzip(zipFile: File, targetDir: File) {
 }
 
 private fun runBuild(dir: File): String {
-    val gradlew = File(dir, "gradlew")
-    if (!gradlew.exists()) return "gradlew not found in ${dir.name}"
+    // Find gradlew anywhere inside the unzipped tree (common when archive has a top-level folder).
+    val gradlew = dir.walkTopDown()
+        .filter { it.isFile && it.name == "gradlew" }
+        .firstOrNull()
+        ?: return "gradlew not found in extracted folder. Contents: " +
+            dir.list()?.joinToString(", ").orEmpty()
+
     gradlew.setExecutable(true)
-    val pb = ProcessBuilder("/system/bin/sh", "-c", "cd ${gradlew.parent} && ./gradlew build")
+    val workDir = gradlew.parentFile ?: dir
+    val cmd = "cd \"${workDir.absolutePath}\" && ./gradlew build"
+
+    val pb = ProcessBuilder("/system/bin/sh", "-c", cmd)
         .redirectErrorStream(true)
-        .directory(dir)
+        .directory(workDir)
+
     return try {
         val proc = pb.start()
         val output = proc.inputStream.bufferedReader().readText()
