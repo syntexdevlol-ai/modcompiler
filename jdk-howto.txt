@@ -1,0 +1,11 @@
+JDK for ModCompiler builds
+---------------------------
+
+Android doesn't ship a full JDK. To bundle one with your mod zip:
+1) Download Temurin/OpenJDK 17 (Linux aarch64) e.g.
+   https://github.com/adoptium/temurin17-binaries/releases/latest/download/OpenJDK17U-jdk_aarch64_linux_hotspot.tar.gz
+2) Extract it and keep the top folder, e.g. `jdk-17`.
+3) Put that folder inside your mod zip alongside gradlew (any subfolder is OK).
+4) ModCompiler will search for `bin/java` inside the extracted tree and set JAVA_HOME automatically.
+
+If you prefer Java 21, use the matching Temurin 21 aarch64 tar.gz link.
