@@ -109,6 +109,16 @@ private fun runBuild(dir: File): String {
         gradlew.setExecutable(true)
     } catch (_: SecurityException) { }
 
+    // Attempt to find an embedded JDK (look for bin/java).
+    val embeddedJava = dir.walkTopDown()
+        .firstOrNull { it.isFile && it.name == "java" && it.parentFile?.name == "bin" }
+    val javaHome = embeddedJava?.parentFile?.parentFile
+
+    // If no java in PATH, bail early with a clear message.
+    if (!hasJavaInPath() && javaHome == null) {
+        return "Java not found. Install a JDK on device or bundle a JDK in the zip (place bin/java under any subfolder)."
+    }
+
     // Fallback to sh ./gradlew if exec bit fails.
     val workDir = gradlew.parentFile ?: dir
     val cmd = "cd \"${workDir.absolutePath}\" && sh ./gradlew build"
@@ -116,6 +126,12 @@ private fun runBuild(dir: File): String {
     val pb = ProcessBuilder("/system/bin/sh", "-c", cmd)
         .redirectErrorStream(true)
         .directory(workDir)
+    // If we found an embedded JDK, set JAVA_HOME and prepend its bin to PATH.
+    javaHome?.let {
+        val env = pb.environment()
+        env["JAVA_HOME"] = it.absolutePath
+        env["PATH"] = it.resolve("bin").absolutePath + ":" + (env["PATH"] ?: "")
+    }
 
     return try {
         val proc = pb.start()
@@ -124,5 +140,17 @@ private fun runBuild(dir: File): String {
         "Exit ${proc.exitValue()}\n$output"
     } catch (e: Exception) {
         "error: ${e.message}"
+    }
+}
+
+private fun hasJavaInPath(): Boolean {
+    return try {
+        val proc = ProcessBuilder("java", "-version")
+            .redirectErrorStream(true)
+            .start()
+        proc.waitFor()
+        proc.exitValue() == 0
+    } catch (_: Exception) {
+        false
     }
 }
